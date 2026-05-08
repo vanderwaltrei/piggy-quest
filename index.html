@@ -27,6 +27,13 @@
     text-shadow: 3px 3px 0 #2a1200;
     letter-spacing: 2px;
   }
+  #endScreen img {
+  max-width: 90%;
+  height: auto;
+  margin: 15px 0;
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 #2a1200;
+  }
   #endScreen {
     display: none;
     position: fixed;
@@ -96,6 +103,7 @@
 
 <div id="endScreen">
   <div id="endTitle">REI AWAITS</div>
+  <img id="chaiReiGif" src="chai_rei.gif" alt="Chai Rei" style="max-width: 200px; margin-bottom: 20px; image-rendering: pixelated;">
   <div id="endText"></div>
   <div id="btnRow">
     <button class="answerBtn" id="yesBtn">YES!</button>
@@ -108,7 +116,7 @@
 <div id="heartScreen">
   <h1>YAY!</h1>
   <p>The piggy and the guy lived happily ever after</p>
-  <p style="font-size:clamp(30px,8vw,60px)">🐷</p>
+  <p style="font-size:clamp(30px,8vw,60px)">🐷 + 🧑‍🦱</p>
   <button id="restartBtn">Play Again ↺</button>
 </div>
 
@@ -190,9 +198,17 @@ const C = {
   heart: '#e03060',
   tree: '#2d5e1e',
   treeTrunk: '#5c3a1a',
-  emuHoodie: '#1a1a2e',
-  emuHair: '#111',
-  emuSkin: '#d4a5a0',
+  // ADD THESE NEW COLORS FOR THE CHARACTER:
+  hair: '#3a2a20',
+  skin: '#f8d0b8',
+  suitMain: '#2a2a2a',
+  shirt: '#e0e0e0',
+  tie: '#1a1a1a',
+  eyeWhite: '#ffffff',
+  eyePupil: '#333333',
+  emuHoodie: '#1a1a2e',  // Keep existing
+  emuHair: '#111',       // Keep existing
+  emuSkin: '#d4a5a0',    // Keep existing
 };
 
 // ---- GAME STATE ----
@@ -435,25 +451,47 @@ function drawBigTree(x, y) {
   ctx.fillRect(x + 22, y + 20, 12, 10);
 }
 
-function drawEmoGuy(x, y) {
-  px(x, y + 10, 22, 22, C.emuHoodie);
-  px(x - 2, y + 4, 26, 14, C.emuHoodie);
-  px(x + 4, y + 6, 14, 12, C.emuSkin);
-  px(x + 2, y, 18, 10, C.emuHair);
-  px(x, y + 2, 8, 8, C.emuHair);
-  px(x + 4, y - 3, 14, 6, C.emuHair);
-  px(x + 10, y + 2, 10, 6, C.emuHair);
-  px(x + 6, y + 10, 2, 1, C.emuHair);
-  px(x + 12, y + 10, 2, 1, C.emuHair);
-  px(x + 8, y + 15, 6, 1, C.emuHair);
-  px(x + 7, y + 16, 2, 1, C.emuHair);
-  px(x + 13, y + 16, 2, 1, C.emuHair);
-  px(x + 18, y + 12, 10, 6, C.emuHoodie);
-  px(x - 8, y + 12, 10, 6, C.emuHoodie);
-  px(x + 2, y + 28, 8, 14, '#111');
-  px(x + 12, y + 28, 8, 14, '#111');
-  px(x, y + 40, 12, 5, '#1a1a1a');
-  px(x + 10, y + 40, 12, 5, '#1a1a1a');
+function drawUser(x, y, walkFrame, squash, stretch, onGround) {
+  const bw = Math.round(20 * squash);
+  const bh = Math.round(45 * stretch); // Taller for human proportions
+  const bx = x - (bw - 20) / 2;
+  const by = y - (bh - 45);
+
+  // --- SUIT JACKET (Body) ---
+  px(bx + 2, by + 18, bw - 4, bh - 18, C.suitMain); // Main torso
+  px(bx, by + 22, 5, 15, C.suitMain);              // Left arm
+  px(bx + bw - 5, by + 22, 5, 15, C.suitMain);     // Right arm
+  
+  // Shirt and Tie Detail
+  px(bx + 8, by + 18, 4, 10, C.shirt);             // White shirt peek
+  px(bx + 9, by + 20, 2, 12, C.tie);               // Dark tie
+
+  // --- HEAD & FACE ---
+  const faceY = by + 5;
+  px(bx + 4, faceY, 12, 14, C.skin);               // Face base
+  
+  // Eyes (Looking slightly down/sideways as in photo)
+  px(bx + 6, faceY + 5, 3, 2, C.eyeWhite);         // Left eye
+  px(bx + 11, faceY + 5, 3, 2, C.eyeWhite);        // Right eye
+  px(bx + 7, faceY + 5, 1, 1, C.eyePupil);         // Pupils
+  px(bx + 12, faceY + 5, 1, 1, C.eyePupil);
+
+  // --- THE HAIR (Signature Feature) ---
+  // Using overlapping blocks to create that "curly volume" look
+  px(bx + 1, by, 18, 8, C.hair);                   // Top volume
+  px(bx - 1, by + 3, 22, 6, C.hair);                 // Side volume
+  px(bx + 3, by - 3, 14, 4, C.hair);                 // Top curls
+  px(bx + 2, by + 6, 4, 4, C.hair);                  // Bangs left
+  px(bx + 14, by + 6, 4, 4, C.hair);                 // Bangs right
+
+  // --- LEGS (Walk Animation) ---
+  const legAnim = onGround ? Math.sin(walkFrame * 0.4) * 4 : 0;
+  px(bx + 4, by + bh - 10, 5, 10 + Math.round(legAnim), C.suitMain);  // Left leg
+  px(bx + 11, by + bh - 10, 5, 10 - Math.round(legAnim), C.suitMain); // Right leg
+  
+  // Shoes
+  px(bx + 4, by + bh - 2 + Math.round(legAnim), 6, 3, C.tie); 
+  px(bx + 11, by + bh - 2 - Math.round(legAnim), 6, 3, C.tie);
 }
 
 function drawPig(x, y, walkFrame, squash, stretch, onGround) {
@@ -853,7 +891,7 @@ function render(ts) {
     const sx = tree.x - cameraX;
     if (sx > -150 && sx < BASE_W + 80) {
       drawBigTree(tree.x, tree.y);
-      drawEmoGuy(npc.x, npc.y);
+      drawUser(npc.x, npc.y, player.walkFrame, 1, 1, player.onGround);  // Updated call
     }
   }
 
